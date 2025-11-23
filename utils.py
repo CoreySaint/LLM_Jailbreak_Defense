@@ -1,12 +1,25 @@
 from google import genai
 from openai import OpenAI
 from dotenv import load_dotenv
+from defenses import JailbreakDefenses
 import os
 
 class AiModelHelper:
     def __init__(self, model_name: str):
         load_dotenv()
         self.model_name = model_name
+
+        llama_key = os.getenv("LLAMA_API_KEY")
+        if not llama_key:
+            raise ValueError("Missing LLAMA_API_KEY (defensive model) in environment variables.")
+                             
+        self.defense_model = OpenAI(
+                base_url="https://integrate.api.nvidia.com/v1", 
+                api_key=os.getenv("LLAMA_API_KEY")
+            )
+        self.defense = JailbreakDefenses(
+            client = self.defense_model
+        )
 
         if self.model_name == "Gemini":
             api_key = os.getenv("GEMINI_API_KEY")
@@ -32,6 +45,7 @@ class AiModelHelper:
                 api_key = api_key
             )
         
+
         else:
             raise ValueError(f"Unsupported model: {model_name}")
         
@@ -39,6 +53,15 @@ class AiModelHelper:
     def get_response(self, version: str, prompt: str):
         if not version:
             raise ValueError("Version not supported. Please select a model and a version in the sidebar")
+        
+        try:
+            flagged = self.defense.check_jailbreak(prompt)
+        except Exception as e:
+            print(f"Defense model error: {e}")
+            flagged = False
+
+        if not flagged:
+            return ("The system detected this message as unsafe, please ensure your prompts follow the Terms of Service.")
         
         if self.model_name == "Gemini":
             response = self.client.models.generate_content(
@@ -73,5 +96,20 @@ class AiModelHelper:
             )
             return response.choices[0].message.content
         
+        elif self.model_name == "Llama":
+            if not version:
+                version = "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"
+            response = self.client.chat.completions.create(
+                model=version,
+                messages=[{"role":"user","content":prompt}],
+                temperature=1,
+                top_p=1,
+                max_tokens=4096,
+                stream=False
+            )
+            print(response.choices[0].message)
+            return response.choices[0].message.content
+
         else:
             return "Model not supported"
+        
