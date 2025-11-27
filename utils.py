@@ -1,3 +1,4 @@
+import time
 from google import genai
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -50,25 +51,29 @@ class AiModelHelper:
             raise ValueError(f"Unsupported model: {model_name}")
         
 
-    def get_response(self, version: str, prompt: str):
+    def get_response(self, version: str, prompt: str, defense1: bool, defense2: bool):
         if not version:
             raise ValueError("Version not supported. Please select a model and a version in the sidebar")
         
-        try:
-            flagged = self.defense.check_jailbreak(prompt)
-        except Exception as e:
-            print(f"Defense model error: {e}")
-            flagged = False
+        start = time.perf_counter()
+        
+        if defense1:
+            try:
+                flagged = self.defense.check_jailbreak(prompt)
+            except Exception as e:
+                print(f"Defense model error: {e}")
+                flagged = False
 
-        if not flagged:
-            return ("The system detected this message as unsafe, please ensure your prompts follow the Terms of Service.")
+            if not flagged:
+                return ("The system detected this message as unsafe, please ensure your prompts follow the Terms of Service.")
+            
         
         if self.model_name == "Gemini":
             response = self.client.models.generate_content(
                 model=version, 
                 contents=prompt
             )
-            return response.text
+            reply =  response.text
         
         elif self.model_name == "Qwen":
             if not version:
@@ -81,7 +86,7 @@ class AiModelHelper:
                 max_tokens=4096,
                 stream=False
             )
-            return response.choices[0].message.content
+            reply =  response.choices[0].message.content
 
         elif self.model_name == "GPT":
             if not version:
@@ -94,7 +99,7 @@ class AiModelHelper:
                 max_tokens=4096,
                 stream=False
             )
-            return response.choices[0].message.content
+            reply =  response.choices[0].message.content
         
         elif self.model_name == "Llama":
             if not version:
@@ -107,9 +112,14 @@ class AiModelHelper:
                 max_tokens=4096,
                 stream=False
             )
-            print(response.choices[0].message)
-            return response.choices[0].message.content
+            reply = response.choices[0].message.content
 
         else:
             return "Model not supported"
+        
+        end = time.perf_counter()
+        total_time = end - start
+        formatted = f"Time to response: {total_time:.3f} seconds  \n  \n{reply}"
+        return formatted
+
         

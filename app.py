@@ -33,6 +33,10 @@ elif model_family == "GPT":
 else:
     version = None
 
+defense1 = st.sidebar.checkbox("Activate LLM Filter Defense")
+
+defense2 = st.sidebar.checkbox("Activate Additional Defense (NOT IMPLEMENTED)")
+
 st.sidebar.warning("WARNING: Switching the model or version will clear chat history")
 
 if "messages" not in st.session_state:
@@ -101,7 +105,7 @@ if prompt:
         with st.spinner("Thinking..."):
             try:
                 helper = AiModelHelper(model_family)
-                reply = helper.get_response(version, prompt)
+                reply = helper.get_response(version, prompt, defense1, defense2)
             except Exception as e:
                 reply = f"Error: {e}"
 
