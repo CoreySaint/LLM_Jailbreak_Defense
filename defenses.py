@@ -44,7 +44,6 @@ class JailbreakDefenses:
         )
 
         output = response.choices[0].message.content[-1]
-        print(output)
         if output == "1":
             return True   # SAFE
         if output == "0":
