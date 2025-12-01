@@ -35,7 +35,7 @@ else:
 
 defense1 = st.sidebar.checkbox("Activate LLM Filter Defense")
 
-defense2 = st.sidebar.checkbox("Activate Additional Defense (NOT IMPLEMENTED)")
+defense2 = st.sidebar.checkbox("Activate Output Safety Defense")
 
 st.sidebar.warning("WARNING: Switching the model or version will clear chat history")
 

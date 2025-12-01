@@ -116,10 +116,22 @@ class AiModelHelper:
 
         else:
             return "Model not supported"
+
+        # Defense 2: output safety / jailbreak auditor
+        if defense2:
+            try:
+                is_output_safe = self.defense.check_output(prompt, str(reply))
+            except Exception as e:
+                print(f"Defense model error (output check): {e}")
+                is_output_safe = True
+
+            if not is_output_safe:
+                end = time.perf_counter()
+                total_time = end - start
+                blocked_msg = "The model's response was blocked by the output safety defense."
+                return f"Time to response: {total_time:.3f} seconds  \n  \n{blocked_msg}"
         
         end = time.perf_counter()
         total_time = end - start
         formatted = f"Time to response: {total_time:.3f} seconds  \n  \n{reply}"
         return formatted
-
-        
