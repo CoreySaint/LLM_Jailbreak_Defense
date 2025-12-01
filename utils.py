@@ -65,7 +65,9 @@ class AiModelHelper:
                 flagged = False
 
             if not flagged:
-                return ("The system detected this message as unsafe, please ensure your prompts follow the Terms of Service.")
+                end = time.perf_counter()
+                total_time = end - start
+                return (f"Time to response: {total_time:.3f}  \n  The system detected this message as unsafe, please ensure your prompts follow the Terms of Service.")
             
         
         if self.model_name == "Gemini":
@@ -77,13 +79,13 @@ class AiModelHelper:
         
         elif self.model_name == "Qwen":
             if not version:
-                version = "qwen/qwen3-next-80b-a3b-thinking"
+                version = "qwen/qwen3-235b-a22b"
             response = self.client.chat.completions.create(
                 model=version,
                 messages=[{"role":"user","content":prompt}],
                 temperature=0.6,
                 top_p=0.7,
-                max_tokens=4096,
+                max_tokens=8192,
                 stream=False
             )
             reply =  response.choices[0].message.content

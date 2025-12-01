@@ -23,7 +23,7 @@ if model_family == "Gemini":
 elif model_family == "Qwen":
     version = st.sidebar.selectbox(
         "Select Qwen Version",
-        ["qwen/qwen3-next-80b-a3b-thinking"]
+        ["qwen/qwen3-235b-a22b"]
     )
 elif model_family == "GPT":
     version = st.sidebar.selectbox(
